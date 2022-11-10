@@ -1,0 +1,17 @@
+[package]
+name = "videodir-rust"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix-service = "2"
+actix-web = "4"
+bindata = "0.1.1"
+bindata-impl = "0.1.0"
+bcrypt = "0.13.0"
+clap = "4.0"
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.5.9"
+mime = "*"
