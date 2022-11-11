@@ -1,14 +1,16 @@
-use std::env;
-use std::fs;
-use std::path::Path;
-
-use actix_web::{web, App, HttpServer};
-
 mod api;
 mod app;
 mod cli;
 mod config;
 mod htpasswd;
+mod jwt;
+
+use std::env;
+use std::fs;
+use std::path::Path;
+
+use crate::config::Config;
+use crate::htpasswd::Htpasswd;
 
 // load binary data
 #[macro_use]
@@ -30,14 +32,14 @@ async fn main() -> std::io::Result<()> {
     // config
     let conf_path = work_dir.join(Path::new("videodir.conf"));
     let conf_src = fs::read_to_string(conf_path)?;
-    let conf = config::Config::load(&conf_src);
+    let conf = Config::load(&conf_src);
 
     #[cfg(debug_assertions)]
     println!("{:?}", &conf);
 
     // htpasswd
     let passwd_path = work_dir.join(Path::new("htpasswd"));
-    let mut passwd = htpasswd::Htpasswd::load(&fs::read_to_string(&passwd_path)?);
+    let mut passwd= Htpasswd::load(&fs::read_to_string(&passwd_path)?);
     // println!("{:?}",  &passwd);
 
     // cli
@@ -74,22 +76,7 @@ async fn main() -> std::io::Result<()> {
             // do nothing -> run http service
         }
     }
-    let my_data : app::MyData = app::MyData {
-        config: conf.clone(),
-        htpasswd: passwd.clone()
-    };
-    HttpServer::new(move || {
-         App::new()
-            .app_data(my_data.clone())
-            .route("/", web::get().to(app::index))
-            .route("/favicon.ico", web::get().to(app::favicon))
-            .service(
-                web::scope("/api/v1")
-                    .configure(api::api_factory)
-            )
-    })
-        .bind(&conf.server_addr)?
-        .run()
-        .await
+
+    app::start(conf, &passwd).await
 
 }

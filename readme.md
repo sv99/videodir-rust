@@ -2,6 +2,8 @@ videodir-rust
 =============
 
 * [Building a REST and Web Socket API with Actix v3 and Rust](https://agmprojects.com/blog/building-a-rest-and-web-socket-api-with-actix.html)
+* [How to pass reference to this static lifetime struct to each worker stared by the server?](https://stackoverflow.com/questions/73307880/how-to-pass-reference-to-this-static-lifetime-struct-to-each-worker-stared-by-th)
+* [Building REST APIs in Rust with Actix Web](https://www.vultr.com/docs/building-rest-apis-in-rust-with-actix-web/)
 
 Версия `videodir` на Rust. Оригинальная версия продолжает
 падать (скорее всего при сканировании).
