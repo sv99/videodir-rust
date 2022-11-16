@@ -37,16 +37,16 @@ videodir.conf - TOML format
 Handlers
 --------
 
-| Handlers         | Query Type | Result                                                                                                                   |
-|------------------|------------|--------------------------------------------------------------------------------------------------------------------------|
-| /                | GET        | return index.html no auth                                                                                                |
-| /login           | POST       | post {"username: "some", "password": "pass"} return {"token": "JWT TOKEN"}                                               |
-| /api/v1/version  | GET        | return {"version": "0.1"}                                                                                                |
-| /api/v1/volumes  | GET        | get array volumes with video dirs                                                                                        |
-| /api/v1/list     | POST       | post { "path": [ "/24-01-18 01/" ] } get directory list, scan all volumes, path may be empty for root directory          |
-| /api/v1/file     | POST       | post { "path": [ "/24-01-18 01/", "0._02" ] } get file, scan all volumes and return file stream, path not may be empty   |
-| /api/v1/filesize | POST       | post { "path": [ "/24-01-18 01/", "0._02" ] } get filesize, scan all volumes and return file size                        |
-| /api/v1/remove   | POST       | post { "path": [ "/24-01-18 01/", "0._02" ] } remove path (directory o single file)                                      |
+| Handlers         | Query Type | Result                                                                                                                      |
+|------------------|------------|-----------------------------------------------------------------------------------------------------------------------------|
+| /                | GET        | return index.html no auth                                                                                                   |
+| /login           | POST       | post {"username: "some", "password": "pass"} <br> return {"token": "JWT TOKEN"}                                             |
+| /api/v1/version  | GET        | return {"version": "0.1"}                                                                                                   |
+| /api/v1/volumes  | GET        | get array volumes with video dirs                                                                                           |
+| /api/v1/list     | POST       | post { "path": [ "/24-01-18 01/" ] } <br> get directory list, scan all volumes, path may be empty for root directory        |
+| /api/v1/file     | POST       | post { "path": [ "/24-01-18 01/", "0._02" ] } <br> get file, scan all volumes and return file stream, path not may be empty |
+| /api/v1/filesize | POST       | post { "path": [ "/24-01-18 01/", "0._02" ] } <br> get filesize, scan all volumes and return file size                      |
+| /api/v1/remove   | POST       | post { "path": [ "/24-01-18 01/", "0._02" ] } <br> remove path (directory o single file)                                    |
 
 1. remove return {"result": "OK"} or {"result": err.Error()},<br/> search path for remove on all volumes
 2. path передаем как массив элементов пути, в противном случае, когда
@@ -56,7 +56,11 @@ Handlers
 security
 --------
 
-Use HTTPS и JWT token (SigningMethodHS384)
+* [Actix-Web Basic And Bearer Authentication Examples](https://turreta.com/2020/06/07/actix-web-basic-and-bearer-authentication-examples/)
+* [How to use JWT with Rust](https://tms-dev-blog.com/how-to-use-jwt-with-rust-learn-the-basics/)
+* [JWT realisation based on emreyalvac/actix-web-jwt](https://github.com/emreyalvac/actix-web-jwt)
+
+Use HTTPS и Bearer JWT token (SigningMethodHS384) auth scheme.
 
 Для HTTPS использовал RSA ключи, эти же ключи использовал для
 подписи и проверки JWT. RSA используется в JWT библиотеке,

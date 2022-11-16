@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use chrono::prelude::*;
 
 /// This is what we're going to decode into. Each field is optional, meaning
 /// that it doesn't have to be present in TOML.
@@ -19,7 +20,9 @@ pub struct Config {
 
 impl Config {
     pub fn load(toml_content: &str) ->  Config {
-        toml::from_str(toml_content).unwrap()
+        let mut conf: Config = toml::from_str(toml_content).unwrap();
+        conf.jwt_secret = format!("{}{}", conf.jwt_secret, Utc::now());
+        conf
     }
 }
 

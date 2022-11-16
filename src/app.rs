@@ -1,39 +1,44 @@
 use std::{fs::File, io::BufReader};
 
 use actix_web::{web, middleware::Logger, App, HttpResponse, HttpServer};
+use actix_web_httpauth::middleware::HttpAuthentication;
 use rustls::{Certificate, PrivateKey, ServerConfig};
 use rustls_pemfile::{certs, rsa_private_keys};
 use env_logger::Env;
-use mime;
 
 use crate::config::Config;
 use crate::htpasswd::Htpasswd;
 use crate::{api, app, assets};
+use crate::jwt::{bearer_jwt_validator, login};
 
-pub async fn start(conf: Config, passwd: &Htpasswd) -> std::io::Result<()> {
+pub async fn start(conf: Config, passwd: Htpasswd) -> std::io::Result<()> {
 
     let addr = conf.server_addr.clone();
     env_logger::init_from_env(Env::default().default_filter_or("info"));
     println!("starting HTTPS server at https://{addr}");
 
-    let config = load_rustls_config(&conf);
+    let tls_config = load_rustls_config(&conf);
 
     HttpServer::new(move || {
+        let auth = HttpAuthentication::bearer(bearer_jwt_validator);
+
         App::new()
             .wrap(Logger::default())
             //.wrap(Logger::new("%a %{User-Agent}i"))
             .app_data(web::Data::new(conf.clone()))
+            .app_data(web::Data::new(passwd.clone()))
             .route("/", web::get().to(app::index))
             .route("/favicon.ico", web::get().to(app::favicon))
+            .route("/login", web::post().to(login))
             .service(
                 web::scope("/api/v1")
                     .configure(api::api_factory)
+                    .wrap(auth)
             )
     })
-        .bind_rustls(&addr, config)?
+        .bind_rustls(&addr, tls_config)?
         .run()
         .await
-
 }
 
 async fn index() -> HttpResponse {
@@ -48,15 +53,13 @@ async fn index() -> HttpResponse {
 }
 
 async fn favicon() -> HttpResponse {
-    let image_icon: mime::Mime = "image/x-icon".parse().unwrap();
     if let Some(asset) = assets::get("static/favicon.ico") {
         HttpResponse::Ok()
-            .content_type(image_icon)
+            .content_type("image/x-icon")
             .body(asset)
     } else {
         HttpResponse::NotFound()
-            .content_type(image_icon)
-            .body(vec![])
+            .body("Not Found!")
     }
 }
 

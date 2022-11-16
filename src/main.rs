@@ -77,6 +77,6 @@ async fn main() -> std::io::Result<()> {
         }
     }
 
-    app::start(conf, &passwd).await
+    app::start(conf, passwd).await
 
 }
