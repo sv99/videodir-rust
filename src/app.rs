@@ -4,18 +4,16 @@ use actix_web::{web, middleware::Logger, App, HttpResponse, HttpServer};
 use actix_web_httpauth::middleware::HttpAuthentication;
 use rustls::{Certificate, PrivateKey, ServerConfig};
 use rustls_pemfile::{certs, rsa_private_keys};
-use env_logger::Env;
 
 use crate::config::Config;
 use crate::htpasswd::Htpasswd;
 use crate::{api, app, assets};
 use crate::jwt::{bearer_jwt_validator, login};
 
-pub async fn start(conf: Config, passwd: Htpasswd) -> std::io::Result<()> {
+pub fn start(conf: Config, passwd: Htpasswd) -> actix_web::dev::Server {
 
     let addr = conf.server_addr.clone();
-    env_logger::init_from_env(Env::default().default_filter_or("info"));
-    println!("starting HTTPS server at https://{addr}");
+    info!("starting HTTPS server at https://{addr}");
 
     let tls_config = load_rustls_config(&conf);
 
@@ -36,9 +34,10 @@ pub async fn start(conf: Config, passwd: Htpasswd) -> std::io::Result<()> {
                     .wrap(auth)
             )
     })
-        .bind_rustls(&addr, tls_config)?
+        .bind_rustls(&addr, tls_config)
+        .unwrap()
+        .workers(2)
         .run()
-        .await
 }
 
 async fn index() -> HttpResponse {
@@ -87,7 +86,7 @@ fn load_rustls_config(conf: &Config) -> rustls::ServerConfig {
 
     // exit if no keys could be parsed
     if keys.is_empty() {
-        eprintln!("Could not locate RSA private keys.");
+        error!("Could not locate RSA private keys.");
         std::process::exit(1);
     }
 

@@ -37,19 +37,18 @@ videodir.conf - TOML format
 Handlers
 --------
 
-| Handlers         | Query Type | Result                                                                                                                      |
-|------------------|------------|-----------------------------------------------------------------------------------------------------------------------------|
-| /                | GET        | return index.html no auth                                                                                                   |
-| /login           | POST       | post {"username: "some", "password": "pass"} <br> return {"token": "JWT TOKEN"}                                             |
-| /api/v1/version  | GET        | return {"version": "0.1"}                                                                                                   |
-| /api/v1/volumes  | GET        | get array volumes with video dirs                                                                                           |
-| /api/v1/list     | POST       | post { "path": [ "/24-01-18 01/" ] } <br> get directory list, scan all volumes, path may be empty for root directory        |
-| /api/v1/file     | POST       | post { "path": [ "/24-01-18 01/", "0._02" ] } <br> get file, scan all volumes and return file stream, path not may be empty |
-| /api/v1/filesize | POST       | post { "path": [ "/24-01-18 01/", "0._02" ] } <br> get filesize, scan all volumes and return file size                      |
-| /api/v1/remove   | POST       | post { "path": [ "/24-01-18 01/", "0._02" ] } <br> remove path (directory o single file)                                    |
+| Handlers         | Query Type | Result                                                                                                                                                              |
+|------------------|------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| /                | GET        | return index.html no auth                                                                                                                                           |
+| /login           | POST       | post {"username: "some", "password": "pass"} <br/> return { "token": \<bearer JWT TOKEN\> }                                                                         |
+| /api/v1/version  | GET        | return {"version": "0.1"}                                                                                                                                           |
+| /api/v1/volumes  | GET        | return ["./videoItv/"] <br/> get array volumes with video dirs                                                                                                      |
+| /api/v1/list     | POST       | post { "path": [ "/24-01-18 01/" ] } <br> return: [ "24-01-18 01", "25-01-18 02" ] <br/> get directory list, scan all volumes, path may be empty for root directory |
+| /api/v1/file     | POST       | post { "path": [ "/24-01-18 01/", "0._02" ] } <br/> get file, scan all volumes and return file stream, path not may be empty                                        |
+| /api/v1/filesize | POST       | post { "path": [ "/24-01-18 01/", "0._02" ] } <br/> return: { "size": 8 } <br/> get filesize, scan all volumes and return file size                                 |
+| /api/v1/remove   | POST       | post { "path": [ "/24-01-18 01/", "0._02" ] } <br/> return {"result": "OK"} or {"result": err.Error()} <br/> remove path (directory o single file)                  |
 
-1. remove return {"result": "OK"} or {"result": err.Error()},<br/> search path for remove on all volumes
-2. path передаем как массив элементов пути, в противном случае, когда
+1. path передаем как массив элементов пути, в противном случае, когда
    передаем путь из windows система видит ескейп последовательности
    вместо путей.
 
@@ -126,6 +125,8 @@ Windows service
 запуска из командной строки и в режиме сервиса. Режим сервиса тоже два варианта
 старт с ключом `start` или из апплета Сервис. 
 
+На первом этапе возврат к запуску через оболочку [nssm](https://www.helpmegeek.com/run-applications-as-windows-service/)
+
 Used crates
 -----------
 
@@ -133,14 +134,27 @@ Used crates
 2. htpasswd based on [htpasswd-verify](https://github.com/aQaTL/htpasswd-verify) and
    [passivized_htpasswd](https://github.com/iamjpotts/passivized_htpasswd)
 3. [toml](https://github.com/toml-rs/toml/tree/main/crates/toml) A TOML-parsing library
+4. 
 
 
 cross compilation
 -----------------
 
+.cargo single target - 485Mb
+
 ```bash
-# windows service
-make service
-# linux binary
-make linux
+# cross compilation to windows
+rustup target list
+rustup target add x86_64-pc-windows-msvc
 ```
+
+Простого решения как в Golang нет. По крайней мере нужно что-то делать с линкером и копировать библиотеки.
+Проблема в компиляции нативного кода в библиотеках для поддержки криптографии.
+Возможно, более простое решение компилировать сервис непосредственно на Windows?
+
+todo
+----
+
+1. logging
+2. custom error
+3. windows service and cross compilation

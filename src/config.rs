@@ -15,6 +15,8 @@ pub struct Config {
     pub key: String,
     #[serde(default = "default_jwt_secret")]
     pub jwt_secret: String,
+    #[serde(default = "default_log_level")]
+    pub log_level: String,
     pub video_dirs: Vec<String>
 }
 
@@ -46,4 +48,8 @@ fn default_key() -> String {
 
 fn default_jwt_secret() -> String {
     "secret".to_string()
+}
+
+fn default_log_level() -> String {
+    "info".to_string()
 }
